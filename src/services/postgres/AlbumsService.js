@@ -16,7 +16,7 @@ class AlbumsService {
 
     // Kirim data ke DB menggunakan SQL
     const query = {
-      text: 'INSERT INTO albums VALUES($1, $2, $3, $4, $5, $6) RETURNING id',
+      text: 'INSERT INTO albums VALUES($1, $2, $3, $4, $5) RETURNING id',
       values: [id, name, year, createdAt, updatedAt]
     }
 
@@ -25,6 +25,8 @@ class AlbumsService {
     if (!result.rows[0].id) {
       throw new InvariantError('Album gagal ditambahkan')
     }
+
+    return result.rows[0].id
   }
 
   async getAlbumById (id) {
@@ -69,6 +71,8 @@ class AlbumsService {
     if (!result.rows.length) {
       throw new NotFoundError('Album gagal dihapus. Id tidak ditemukan')
     }
+
+    return result
   }
 }
 

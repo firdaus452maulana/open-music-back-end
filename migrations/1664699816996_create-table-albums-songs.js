@@ -15,6 +15,14 @@ exports.up = pgm => {
     year: {
       type: 'INT',
       notNull: true
+    },
+    created_at: {
+      type: 'TEXT',
+      notNull: true
+    },
+    updated_at: {
+      type: 'TEXT',
+      notNull: true
     }
   })
   pgm.createTable('songs', {
@@ -47,11 +55,21 @@ exports.up = pgm => {
       notNull: true,
       references: '"albums"',
       onDelete: 'cascade'
+    },
+    created_at: {
+      type: 'TEXT',
+      notNull: true
+    },
+    updated_at: {
+      type: 'TEXT',
+      notNull: true
     }
   })
 }
 
 exports.down = pgm => {
-  pgm.dropTable('albums')
+  pgm.dropTable('albums', {
+    cascade: true
+  })
   pgm.dropTable('songs')
 }
