@@ -53,14 +53,26 @@ class AlbumHandler {
   async getAlbumByIdHandler (request, h) {
     try {
       const { id } = request.params
-      const album = await this._service.getAlbumById(id)
+      const result = await this._service.getAlbumById(id)
+      const album = result.album
+      const songsArr = []
+      result.songs.forEach(element => {
+        const data = {
+          id: element.id,
+          title: element.title,
+          performer: element.performer
+        }
+        songsArr.push(data)
+      })
+
       return {
         status: 'success',
         data: {
           album: {
             id: album.id,
             name: album.name,
-            year: album.year
+            year: album.year,
+            songs: songsArr
           }
         }
       }
