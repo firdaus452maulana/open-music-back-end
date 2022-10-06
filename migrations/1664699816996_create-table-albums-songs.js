@@ -47,12 +47,10 @@ exports.up = pgm => {
       notNull: true
     },
     duration: {
-      type: 'INT',
-      notNull: true
+      type: 'INT'
     },
     album_id: {
       type: 'VARCHAR(50)',
-      notNull: true,
       references: '"albums"',
       onDelete: 'cascade'
     },
