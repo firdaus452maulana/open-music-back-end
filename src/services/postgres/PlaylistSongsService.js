@@ -13,6 +13,16 @@ class PlaylistsService {
     const createdAt = new Date().toISOString()
     const updatedAt = createdAt
 
+    const querySong = {
+      text: 'SELECT * FROM songs WHERE id = $1',
+      values: [songId]
+    }
+
+    const resultSong = await this._pool.query(querySong)
+    if (!resultSong.rows.length) {
+      throw new NotFoundError('Lagu tidak ditemukan')
+    }
+
     // Kirim data ke DB menggunakan SQL
     const query = {
       text: 'INSERT INTO playlist_songs VALUES($1, $2, $3, $4, $5) RETURNING id',
@@ -29,12 +39,19 @@ class PlaylistsService {
   }
 
   async getSongsByPlaylist (playlistId) {
+    // const query = {
+    //   text: `SELECT playlist.*, playlists.*, songs.id, songs.title, songs.performer FROM playlist_songs
+    //     JOIN playlists ON playlists.id = playlist.playlist_id
+    //     JOIN songs ON songs.id = playlist.song_id
+    //     WHERE playlists.playlist_id = $1
+    //     GROUP BY playlists.id`,
+    //   values: [playlistId]
+    // }
+
     const query = {
-      text: `SELECT playlist.*, playlists.*, songs.id, songs.title, songs.performer FROM playlist_songs
-        JOIN playlists ON playlists.id = playlist.playlist_id
-        JOIN songs ON songs.id = playlist.song_id
-        WHERE playlists.playlist_id = $1
-        GROUP BY playlists.id`,
+      text: `SELECT songs.id, songs.title, songs.performer FROM playlist_songs
+        JOIN songs ON songs.id = song_id
+        WHERE playlist_id = $1`,
       values: [playlistId]
     }
 

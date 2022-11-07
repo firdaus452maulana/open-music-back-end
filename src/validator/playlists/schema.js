@@ -5,7 +5,7 @@ const AddPlaylistPayloadSchema = Joi.object({
 })
 
 const AddSongPlaylistPayloadSchema = Joi.object({
-  name: Joi.string().required()
+  songId: Joi.string().required()
 })
 
 module.exports = { AddPlaylistPayloadSchema, AddSongPlaylistPayloadSchema }

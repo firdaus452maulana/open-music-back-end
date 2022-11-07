@@ -3,11 +3,11 @@ const { Pool } = require('pg')
 const InvariantError = require('../../exceptions/InvariantError')
 const NotFoundError = require('../../exceptions/NotFoundError')
 const AuthorizationError = require('../../exceptions/AuthorizationError')
-const { mapDBToModelPlaylist } = require('../../utils')
 
 class PlaylistsService {
-  constructor () {
+  constructor (CollaborationService) {
     this._pool = new Pool()
+    this._collaborationService = CollaborationService
   }
 
   async verifyPlaylistOwner ({ id, owner }) {
@@ -27,7 +27,7 @@ class PlaylistsService {
 
   async verifyPlaylistAccess ({ playlistId, userId }) {
     try {
-      await this.verifyPlaylistOwner(playlistId, userId)
+      await this.verifyPlaylistOwner({ id: playlistId, owner: userId })
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error
@@ -60,17 +60,30 @@ class PlaylistsService {
     return result.rows[0].id
   }
 
-  async getPlaylist (owner) {
+  async getPlaylist (userId) {
     const query = {
-      text: `SELECT playlists.* FROM playlists
-        WHERE playlists.owner = $1
-        GROUP BY playlists.id`,
-      values: [owner]
+      text: `SELECT playlists.id, playlists.name, users.username FROM playlists
+        INNER JOIN users ON users.id = playlists.owner
+        WHERE playlists.owner = $1 OR playlists.id = (SELECT playlist_id FROM collaborations WHERE user_id = $1)`,
+      values: [userId]
     }
 
     const result = await this._pool.query(query)
 
-    return result.rows.map(mapDBToModelPlaylist)
+    return result.rows
+  }
+
+  async getPlaylistById (id) {
+    const query = {
+      text: `SELECT playlists.id, playlists.name, users.username FROM playlists
+        INNER JOIN users ON users.id = owner
+        WHERE playlists.id = $1`,
+      values: [id]
+    }
+
+    const result = await this._pool.query(query)
+
+    return result.rows[0]
   }
 
   async deletePlaylistById (id) {
