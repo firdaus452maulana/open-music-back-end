@@ -10,6 +10,8 @@ class AlbumHandler {
     this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this)
     this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this)
     this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this)
+    this.postLikesAlbumHandler = this.postLikesAlbumHandler.bind(this)
+    this.getLikesAlbumHandler = this.getLikesAlbumHandler.bind(this)
     // autoBind(this)
   }
 
@@ -75,6 +77,32 @@ class AlbumHandler {
       status: 'success',
       message: 'Album berhasil dihapus'
     }
+  }
+
+  async postLikesAlbumHandler (request, h) {
+    const { id } = request.params
+    const { id: credentialId } = request.auth.credentials
+
+    const message = await this._service.likeAlbum(id, credentialId)
+
+    return h.response({
+      status: 'success',
+      message
+    }).code(201)
+  }
+
+  async getLikesAlbumHandler (request, h) {
+    const { id } = request.params
+
+    await this._service.getAlbumById(id)
+    const count = await this._service.likesCountAlbum(id)
+
+    return h.response({
+      status: 'success',
+      data: {
+        likes: count
+      }
+    }).code(200)
   }
 }
 

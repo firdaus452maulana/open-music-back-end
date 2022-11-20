@@ -101,6 +101,63 @@ class AlbumsService {
 
     return result.rows[0].id
   }
+
+  async likeAlbum (albumId, userId) {
+    const id = 'albumLike-' + nanoid(16)
+
+    const queryAlbum = {
+      text: 'SELECT * FROM albums WHERE id = $1',
+      values: [albumId]
+    }
+
+    const resultAlbum = await this._pool.query(queryAlbum)
+
+    if (!resultAlbum.rowCount) {
+      throw new NotFoundError('Album tidak ditemukan')
+    }
+
+    const query = {
+      text: 'SELECT * FROM user_album_likes WHERE album_id = $1 AND user_id = $2',
+      values: [albumId, userId]
+    }
+
+    const result = await this._pool.query(query)
+
+    let message = ''
+
+    if (!result.rows.length) {
+      const queryAdd = {
+        text: 'INSERT INTO user_album_likes VALUES($1, $2, $3) RETURNING id',
+        values: [id, userId, albumId]
+      }
+
+      await this._pool.query(queryAdd)
+
+      message = 'Berhasil menyukai Album'
+    } else {
+      const queryDelete = {
+        text: 'DELETE FROM user_album_likes WHERE album_id = $1 AND user_id = $2 RETURNING id',
+        values: [albumId, userId]
+      }
+
+      await this._pool.query(queryDelete)
+
+      message = 'Berhasil batal menyukai Album'
+    }
+
+    return message
+  }
+
+  async likesCountAlbum (albumId) {
+    const query = {
+      text: 'SELECT * FROM user_album_likes WHERE album_id = $1',
+      values: [albumId]
+    }
+
+    const result = await this._pool.query(query)
+
+    return result.rowCount
+  }
 }
 
 module.exports = AlbumsService
