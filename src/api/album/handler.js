@@ -97,6 +97,15 @@ class AlbumHandler {
     await this._service.getAlbumById(id)
     const count = await this._service.likesCountAlbum(id)
 
+    if (typeof count === 'string') {
+      return h.response({
+        status: 'success',
+        data: {
+          likes: +count
+        }
+      }).header('X-Data-Source', 'cache').code(200)
+    }
+
     return h.response({
       status: 'success',
       data: {

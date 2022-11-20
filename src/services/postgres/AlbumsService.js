@@ -5,8 +5,9 @@ const NotFoundError = require('../../exceptions/NotFoundError')
 const { mapDBtoModelAlbum, mapDBtoModelSong } = require('../../utils')
 
 class AlbumsService {
-  constructor () {
+  constructor (cacheService) {
     this._pool = new Pool()
+    this._cacheService = cacheService
   }
 
   async addAlbum ({ name, year }) {
@@ -145,18 +146,27 @@ class AlbumsService {
       message = 'Berhasil batal menyukai Album'
     }
 
+    await this._cacheService.delete(`album:${albumId}`)
+
     return message
   }
 
   async likesCountAlbum (albumId) {
-    const query = {
-      text: 'SELECT * FROM user_album_likes WHERE album_id = $1',
-      values: [albumId]
+    try {
+      const result = await this._cacheService.get(`album:${albumId}`)
+      return result
+    } catch (error) {
+      const query = {
+        text: 'SELECT * FROM user_album_likes WHERE album_id = $1',
+        values: [albumId]
+      }
+
+      const result = await this._pool.query(query)
+
+      await this._cacheService.set(`album:${albumId}`, result.rowCount)
+
+      return result.rowCount
     }
-
-    const result = await this._pool.query(query)
-
-    return result.rowCount
   }
 }
 
