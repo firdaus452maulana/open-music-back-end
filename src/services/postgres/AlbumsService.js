@@ -84,6 +84,23 @@ class AlbumsService {
 
     return result
   }
+
+  async updateAlbumCover (id, { filename }) {
+    const updatedAt = new Date().toISOString()
+
+    const query = {
+      text: 'UPDATE albums SET cover_url = $1, updated_at = $2 WHERE id = $3 RETURNING id',
+      values: [filename, updatedAt, id]
+    }
+
+    const result = await this._pool.query(query)
+
+    if (!result.rowCount) {
+      throw new NotFoundError('Album tidak ditemukan')
+    }
+
+    return result.rows[0].id
+  }
 }
 
 module.exports = AlbumsService
